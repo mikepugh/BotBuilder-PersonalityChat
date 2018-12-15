@@ -71,10 +71,19 @@ namespace Microsoft.Bot.Builder.PersonalityChat
                             await this.PostPersonalityChatResponseToUser(turnContext, next, personalityChatResponse);
                         }
                     }
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Received exception - " + ex.Message);
-                    await this.PostPersonalityChatResponseToUser(turnContext, next, ex.Message);
+                    // For emulator use, send the Exception message
+                    if (turnContext.Activity.ChannelId == "emulator")
+                    {
+                        var response = $"PersonalityChatError: {ex.Message}";
+                        await this.PostPersonalityChatResponseToUser(turnContext, next, response);
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
             }
 
