@@ -33,6 +33,7 @@
 
 namespace Microsoft.Bot.Builder.PersonalityChat.Sample.CustomResponses
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Bot;
     using Microsoft.Bot.Builder;
@@ -40,7 +41,7 @@ namespace Microsoft.Bot.Builder.PersonalityChat.Sample.CustomResponses
 
     public class PersonalityChatBotCustomResponses : IBot
     {
-        public async Task OnTurn(ITurnContext context)
+        public async Task OnTurnAsync(ITurnContext context, CancellationToken cancellationToken = default(CancellationToken))
         {
             // At this point, the PersonalityChat Middleware has already been run. If the incoming
             // Activity was a message, the Middleware called out to PersonalityChat looking for 
@@ -53,7 +54,7 @@ namespace Microsoft.Bot.Builder.PersonalityChat.Sample.CustomResponses
                     if (context.Activity.Type == ActivityTypes.Message && context.Responded == false)
                     {
                         // add app logic when Personality Chat didn't respond. 
-                        await context.SendActivity("Personality Chat didn't respond.");
+                        await context.SendActivityAsync("Personality Chat didn't respond.");
                     }
 
                     break;
@@ -62,12 +63,14 @@ namespace Microsoft.Bot.Builder.PersonalityChat.Sample.CustomResponses
                     {
                         if (newMember.Id != context.Activity.Recipient.Id)
                         {
-                            await context.SendActivity("Hello and welcome to the Personality chat Sample bot.");
+                            await context.SendActivityAsync("Hello and welcome to the Personality chat Sample bot.");
                         }
                     }
 
                     break;
             }
         }
+
+        
     }
 }

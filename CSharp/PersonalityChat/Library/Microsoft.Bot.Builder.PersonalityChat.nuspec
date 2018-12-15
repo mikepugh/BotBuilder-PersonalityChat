@@ -14,7 +14,7 @@
     <language>en-US</language>
     <dependencies>
       <dependency id="Newtonsoft.Json" version="9.0.1" />
-      <dependency id="Microsoft.Bot.Builder.Integration.AspNet.Core" version="4.0.0-alpha-m3.1" />
+      <dependency id="Microsoft.Bot.Builder.Integration.AspNet.Core" version="4.2.0" />
       <dependency id="Microsoft.Bot.Builder.PersonalityChat.Core" version="1.0.0-alpha-m1.0" />
     </dependencies>
   </metadata>

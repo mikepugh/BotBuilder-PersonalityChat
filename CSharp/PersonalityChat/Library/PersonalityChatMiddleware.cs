@@ -36,6 +36,7 @@ namespace Microsoft.Bot.Builder.PersonalityChat
     using System;
     using System.Linq;
     using System.Net.Http;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Bot.Builder.PersonalityChat.Core;
     using Microsoft.Bot.Schema;
@@ -52,20 +53,28 @@ namespace Microsoft.Bot.Builder.PersonalityChat
             this.personalityChatService = new PersonalityChatService(personalityChatMiddlewareOptions);
         }
 
-        public async Task OnTurn(ITurnContext context, MiddlewareSet.NextDelegate next)
+        //public async Task OnTurn(ITurnContext context, MiddlewareSet.NextDelegate next)
+        public async Task OnTurnAsync(ITurnContext turnContext, NextDelegate next, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (context.Activity.Type == ActivityTypes.Message)
+            if (turnContext.Activity.Type == ActivityTypes.Message)
             {
-                var messageActivity = context.Activity.AsMessageActivity();
-                if (!string.IsNullOrEmpty(messageActivity.Text))
+                try
                 {
-                    var results = await this.personalityChatService.QueryServiceAsync(messageActivity.Text.Trim()).ConfigureAwait(false);
-
-                    if (!this.personalityChatMiddlewareOptions.RespondOnlyIfChat || results.IsChatQuery)
+                    var messageActivity = turnContext.Activity.AsMessageActivity();
+                    if (!string.IsNullOrEmpty(messageActivity.Text))
                     {
-                        string personalityChatResponse = this.GetResponse(results);
-                        await this.PostPersonalityChatResponseToUser(context, next, personalityChatResponse);
+                        var results = await this.personalityChatService.QueryServiceAsync(messageActivity.Text.Trim()).ConfigureAwait(false);
+
+                        if (!this.personalityChatMiddlewareOptions.RespondOnlyIfChat || results.IsChatQuery)
+                        {
+                            string personalityChatResponse = this.GetResponse(results);
+                            await this.PostPersonalityChatResponseToUser(turnContext, next, personalityChatResponse);
+                        }
                     }
+                } catch (Exception ex)
+                {
+                    Console.WriteLine("Received exception - " + ex.Message);
+                    await this.PostPersonalityChatResponseToUser(turnContext, next, ex.Message);
                 }
             }
 
@@ -75,7 +84,7 @@ namespace Microsoft.Bot.Builder.PersonalityChat
                 return;
             }
 
-            await next().ConfigureAwait(false);
+            await next(cancellationToken).ConfigureAwait(false);
         }
 
         public virtual string GetResponse(PersonalityChatResults personalityChatResults)
@@ -100,12 +109,13 @@ namespace Microsoft.Bot.Builder.PersonalityChat
             return response;
         }
 
-        public virtual async Task PostPersonalityChatResponseToUser(ITurnContext context, MiddlewareSet.NextDelegate next, string personalityChatResponse)
+        public virtual async Task PostPersonalityChatResponseToUser(ITurnContext context, NextDelegate next, string personalityChatResponse)
         {
             if (!string.IsNullOrEmpty(personalityChatResponse))
             {
-                await context.SendActivity(personalityChatResponse).ConfigureAwait(false);
+                await context.SendActivityAsync(personalityChatResponse).ConfigureAwait(false);
             }
         }
+
     }
 }
